@@ -2,13 +2,18 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const Iconv = require('iconv').Iconv;
 const iconv = new Iconv('EUC-KR', 'UTF-8');
+const Slack = require('slack-node');
+const webhookUri = 'Webhook URL';
 
 const BASE_URL = 'http://m.ppomppu.co.kr';
+// const KEYWORD = [
+//   '신세계',
+//   '왕교자',
+// ];
 const KEYWORD = [
-  '신세계',
-  '왕교자',
+  '나이키',
+  '샤오미',
 ];
-
 const getHtml = async () => {
   try {
     return await axios({
@@ -19,6 +24,33 @@ const getHtml = async () => {
   } catch (error) {
     console.error(error);
   }
+};
+
+
+const slack = new Slack();
+slack.setWebhook(webhookUri);
+
+const send = async (message) => {
+  slack.webhook({
+    text: "인터넷 검색 포털 사이트",
+    attachments:[
+      {
+        fallback: "링크주소: <https://www.google.com|구글>",
+        pretext: "링크주소: <https://www.google.com|구글>",
+        color: "#00FFFF",
+        fields: [
+          {
+            title: "알림",
+            value: "해당링크를 클릭하여 검색해 보세요.",
+            short: false
+          }
+        ]
+      }
+    ]
+  }, function(err, response){
+    console.log('err: ', err);
+    console.log('response: ', response);
+  });
 };
 
 getHtml()
@@ -36,6 +68,7 @@ getHtml()
     return list.filter((n) => n.title);
   })
   .then((res) => {
+    console.log('res: ', res);
     const results = res
       .filter((item) => KEYWORD.some((word) => item.title.includes(word)))
       .map((item) => ({
@@ -48,3 +81,5 @@ getHtml()
     }
     return results;
   });
+
+
