@@ -3,7 +3,8 @@ const cheerio = require('cheerio');
 const Iconv = require('iconv').Iconv;
 const iconv = new Iconv('EUC-KR', 'UTF-8');
 const Slack = require('slack-node');
-const webhookUri = 'Webhook URL';
+const dotenv = require('dotenv');
+dotenv.config();
 
 const BASE_URL = 'http://m.ppomppu.co.kr';
 // const KEYWORD = [
@@ -13,7 +14,9 @@ const BASE_URL = 'http://m.ppomppu.co.kr';
 const KEYWORD = [
   '나이키',
   '샤오미',
+  '홍삼정',
 ];
+
 const getHtml = async () => {
   try {
     return await axios({
@@ -22,34 +25,24 @@ const getHtml = async () => {
       responseType: 'arraybuffer',
     });
   } catch (error) {
-    console.error(error);
+    console.error('getHtml: ', error);
   }
 };
 
-
 const slack = new Slack();
-slack.setWebhook(webhookUri);
+slack.setWebhook(process.env.WEBHOOK_URI);
 
 const send = async (message) => {
+  if (!message.length) {
+
+  }
   slack.webhook({
-    text: "인터넷 검색 포털 사이트",
-    attachments:[
-      {
-        fallback: "링크주소: <https://www.google.com|구글>",
-        pretext: "링크주소: <https://www.google.com|구글>",
-        color: "#00FFFF",
-        fields: [
-          {
-            title: "알림",
-            value: "해당링크를 클릭하여 검색해 보세요.",
-            short: false
-          }
-        ]
-      }
-    ]
-  }, function(err, response){
-    console.log('err: ', err);
-    console.log('response: ', response);
+    text: '뽐뿌 핫딜',
+    attachments: message.map((m) => ({
+      pretext: `${m.title} pretext: <${m.url}>`,
+    }))
+  }, function(error) {
+    console.log('send error: ', error);
   });
 };
 
@@ -68,18 +61,16 @@ getHtml()
     return list.filter((n) => n.title);
   })
   .then((res) => {
-    console.log('res: ', res);
     const results = res
       .filter((item) => KEYWORD.some((word) => item.title.includes(word)))
       .map((item) => ({
           ...item,
-          url: `${BASE_URL}${item.url}`,
+          url: `${BASE_URL}/new/${item.url}`,
         }));
-    if (!results.length) {
-      console.log('결과 없음');
-      return;
-    }
-    return results;
+    console.log('results: ', results);
+    send(results).then((res) => {
+      console.log('send res: ', res);
+    });
   });
 
 
