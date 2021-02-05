@@ -12,6 +12,7 @@
   "dependencies": {
     "axios": "^0.21.1",
     "cheerio": "^1.0.0-rc.5",
+    "dotenv": "^8.2.0",
     "iconv": "^3.0.0",
     "slack-node": "^0.1.8"
   }
