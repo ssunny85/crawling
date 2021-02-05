@@ -7,14 +7,10 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const BASE_URL = 'http://m.ppomppu.co.kr';
-// const KEYWORD = [
-//   '신세계',
-//   '왕교자',
-// ];
 const KEYWORD = [
-  '나이키',
-  '샤오미',
-  '홍삼정',
+  '신세계',
+  '왕교자',
+  '비비고',
 ];
 
 const getHtml = async () => {
@@ -32,14 +28,12 @@ const getHtml = async () => {
 const slack = new Slack();
 slack.setWebhook(process.env.WEBHOOK_URI);
 
-const send = async (message) => {
-  if (!message.length) {
-
-  }
+const send = async (results) => {
+  if (!results.length) return;
   slack.webhook({
     text: '뽐뿌 핫딜',
-    attachments: message.map((m) => ({
-      pretext: `${m.title} pretext: <${m.url}>`,
+    attachments: results.map((result) => ({
+      pretext: `${result.title} pretext: <${result.url}>`,
     }))
   }, function(error) {
     console.log('send error: ', error);
@@ -50,7 +44,7 @@ getHtml()
   .then((html) => {
     const htmlDoc = iconv.convert(html.data).toString();
     const $ = cheerio.load(htmlDoc);
-    const $bodyList = $('.bbsList_new').children('li');
+    const $bodyList = $('.bbs > .bbsList_new:first').children('li');
     let list = [];
     $bodyList.each(function(i, elem) {
       list[i] = {
