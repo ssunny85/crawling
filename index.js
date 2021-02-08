@@ -11,6 +11,7 @@ const KEYWORD = [
   '신세계',
   '왕교자',
   '비비고',
+  '페리오',
 ];
 
 const getHtml = async () => {
@@ -29,7 +30,7 @@ const slack = new Slack();
 slack.setWebhook(process.env.WEBHOOK_URI);
 
 const send = async (results) => {
-  if (!results.length) return;
+  if (!results) return;
   slack.webhook({
     text: '뽐뿌 핫딜',
     attachments: results.map((result) => ({
@@ -54,17 +55,12 @@ getHtml()
     });
     return list.filter((n) => n.title);
   })
-  .then((res) => {
-    const results = res
+  .then((list) => {
+    return list
       .filter((item) => KEYWORD.some((word) => item.title.includes(word)))
       .map((item) => ({
           ...item,
           url: `${BASE_URL}/new/${item.url}`,
         }));
-    console.log('results: ', results);
-    send(results).then((res) => {
-      console.log('send res: ', res);
-    });
-  });
-
-
+  })
+  .then(send);
